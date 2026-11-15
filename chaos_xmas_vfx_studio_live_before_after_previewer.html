@@ -1,0 +1,2471 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chaos Xmas VFX Studio — Live Before/After Previewer</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Custom dark-trap studio scrollbars and range sliders */
+    body {
+      background-color: #09060e;
+      color: #f3e8ff;
+      overflow-x: hidden;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 999px;
+      background: #231736;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #ec4899;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(236, 72, 153, 0.7);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #ec4899;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(236, 72, 153, 0.7);
+    }
+    .no-select {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#09060e] text-purple-50 font-sans antialiased">
+
+  <!-- Compact Studio Top Bar -->
+  <header class="border-b border-purple-500/20 bg-[#130d1d]/90 backdrop-blur-md px-3 sm:px-6 py-2.5 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <!-- Studio Title & Status -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#ec4899] via-[#a855f7] to-[#22c55e] flex items-center justify-center shadow-lg shadow-pink-500/25 shrink-0">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xs sm:text-sm font-extrabold tracking-wide uppercase text-white">
+              Chaos Xmas VFX Studio — Live Before/After Previewer
+            </h1>
+            <span id="modeBadge" class="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#22c55e]/15 text-[#22c55e] border border-[#22c55e]/30">
+              LIVE 16:9 AUTO-PREVIEW
+            </span>
+          </div>
+          <p id="sourceSubtext" class="text-[11px] text-purple-300/75 truncate max-w-[260px] sm:max-w-lg">
+            Drag the center split handle to compare Raw Dark Footage vs. Christmas Lights + VFX
+          </p>
+        </div>
+      </div>
+
+      <!-- Primary Studio Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        <input id="videoFileInput" type="file" accept="video/mp4,video/webm,video/quicktime" class="hidden" />
+
+        <button id="loadMp4Btn" type="button" class="px-3 py-1.5 rounded-xl bg-purple-950/70 hover:bg-purple-900/70 border border-purple-400/30 text-xs font-semibold text-purple-100 flex items-center gap-1.5 transition cursor-pointer">
+          <svg class="w-3.5 h-3.5 text-[#22c55e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          <span>Load My .MP4 Video</span>
+        </button>
+
+        <button id="exportWebmBtn" type="button" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#ec4899] to-[#a855f7] hover:opacity-95 text-xs font-bold text-white flex items-center gap-1.5 shadow-md shadow-pink-500/25 transition cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <span id="exportWebmLabel">Export .WEBM Video</span>
+        </button>
+
+        <button id="openHydrogenBtn" type="button" class="px-3 py-1.5 rounded-xl bg-[#1a1228] hover:bg-[#241838] border border-[#a855f7]/40 text-xs font-semibold text-purple-200 flex items-center gap-1.5 transition cursor-pointer">
+          <svg class="w-3.5 h-3.5 text-[#ec4899]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+          <span>Copy Hydrogen .JSX</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Inline Toast Notification Banner (No alert() ever used) -->
+  <div id="statusBanner" class="hidden bg-[#ec4899]/20 border-b border-[#ec4899]/40 px-4 py-1.5 text-xs font-mono text-pink-100">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+      <span id="statusBannerText">Ready.</span>
+      <button id="closeBannerBtn" type="button" class="text-pink-200 hover:text-white px-1.5 py-0.5 rounded cursor-pointer">✕</button>
+    </div>
+  </div>
+
+  <!-- Main Compact Studio Workspace -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-3 flex flex-col gap-3">
+
+    <!-- Top Scene Preset Bar + View Mode Toggle (Above 16:9 Preview for Immediate Visual Switching) -->
+    <div class="flex flex-wrap items-center justify-between gap-2 bg-[#130d1d] border border-purple-500/20 rounded-2xl p-2">
+      <!-- 5 Scene Preset Buttons -->
+      <div id="scenePresetsRow" class="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+        <button type="button" data-scene-time="10.5" class="scene-btn shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold border transition cursor-pointer bg-[#ec4899]/25 border-[#ec4899] text-white">
+          00:10 — Rooftop Skyline &amp; Christmas Buildings
+        </button>
+        <button type="button" data-scene-time="39.8" class="scene-btn shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold border transition cursor-pointer bg-white/[0.03] border-purple-500/20 text-purple-300 hover:text-white">
+          00:39 — Beat Drop: Purple Flames &amp; Reboot Crown
+        </button>
+        <button type="button" data-scene-time="61.0" class="scene-btn shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold border transition cursor-pointer bg-white/[0.03] border-purple-500/20 text-purple-300 hover:text-white">
+          01:00 — Reversed Vocal Datamosh &amp; Thermal Flash
+        </button>
+        <button type="button" data-scene-time="77.0" class="scene-btn shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold border transition cursor-pointer bg-white/[0.03] border-purple-500/20 text-purple-300 hover:text-white">
+          01:16 — Snowy Alleyway Wrapped in Christmas Lights
+        </button>
+        <button type="button" data-scene-time="114.0" class="scene-btn shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold border transition cursor-pointer bg-white/[0.03] border-purple-500/20 text-purple-300 hover:text-white">
+          01:53 — Gaming Room Finale &amp; CRT Power-Off
+        </button>
+      </div>
+
+      <!-- View Comparison Mode Toggle: Full After / Split / Full Before -->
+      <div class="flex items-center gap-1 bg-[#09060e] p-1 rounded-xl border border-purple-500/25 shrink-0">
+        <button type="button" data-view-mode="after" class="view-mode-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition cursor-pointer text-purple-300 hover:text-white">
+          Full After
+        </button>
+        <button type="button" data-view-mode="split" class="view-mode-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition cursor-pointer bg-[#a855f7] text-white shadow">
+          Split 50/50
+        </button>
+        <button type="button" data-view-mode="before" class="view-mode-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition cursor-pointer text-purple-300 hover:text-white">
+          Full Before
+        </button>
+      </div>
+    </div>
+
+    <!-- 16:9 Live Before/After Split-Screen Canvas Viewport -->
+    <section id="viewportContainer" class="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-purple-500/30 shadow-2xl shadow-purple-950/50 no-select">
+      <!-- Hidden HTML5 Video Element for User's Local .MP4 -->
+      <video id="sourceVideo" playsinline crossorigin="anonymous" class="hidden"></video>
+
+      <!-- Main 1280x720 Compositor Display Canvas -->
+      <canvas id="mainCanvas" class="w-full h-full object-contain block cursor-ew-resize"></canvas>
+
+      <!-- Top-Left Live HUD Badge -->
+      <div class="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 pointer-events-none">
+        <span id="hudTimecode" class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-black/75 backdrop-blur-md text-white border border-purple-400/30">
+          00:10.5 / 02:24.0
+        </span>
+        <span id="hudSceneTag" class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-[#ec4899]/25 backdrop-blur-md text-pink-200 border border-[#ec4899]/50">
+          SCENE 1 // ROOFTOP SKYLINE
+        </span>
+      </div>
+
+      <!-- Top-Right Live Hint Pill -->
+      <div id="splitHintPill" class="hidden sm:flex items-center gap-1.5 absolute top-3 right-3 px-2.5 py-1 rounded-lg text-[11px] font-mono bg-black/75 backdrop-blur-md text-[#22c55e] border border-[#22c55e]/35 pointer-events-none">
+        <span>◀ DRAG SLIDER TO COMPARE ▶</span>
+      </div>
+
+      <!-- Drag-and-Drop .MP4 Dropzone Overlay -->
+      <div id="dropOverlay" class="hidden absolute inset-0 bg-[#09060e]/90 backdrop-blur-md flex flex-col items-center justify-center gap-2 z-20 pointer-events-none">
+        <div class="w-12 h-12 rounded-2xl bg-[#ec4899]/20 border border-[#ec4899] flex items-center justify-center text-[#ec4899] text-2xl animate-bounce">
+          🎬
+        </div>
+        <p class="text-base font-bold text-white">Drop Your .MP4 Video to Composite Real-Time Christmas Lights &amp; VFX</p>
+        <p class="text-xs font-mono text-purple-300">100% Local Browser Processing • Original Audio Preserved</p>
+      </div>
+    </section>
+
+    <!-- Transport Controls & 144-Second Interactive Timeline Scrubber -->
+    <section class="bg-[#130d1d] border border-purple-500/20 rounded-2xl p-3 flex flex-col gap-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <!-- Play / Pause / Mute / Step -->
+        <div class="flex items-center gap-2">
+          <button id="playPauseBtn" type="button" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#ec4899] to-[#a855f7] hover:opacity-95 text-xs font-bold text-white flex items-center gap-1.5 shadow transition cursor-pointer">
+            <span id="playPauseIcon">❚❚</span>
+            <span id="playPauseText">Pause</span>
+          </button>
+
+          <button id="muteBtn" type="button" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-purple-500/25 text-xs font-mono text-purple-200 transition cursor-pointer">
+            🔊 Audio On
+          </button>
+
+          <button id="resetSplitBtn" type="button" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-purple-500/25 text-xs font-mono text-purple-200 transition cursor-pointer">
+            ⇄ Center Split (50%)
+          </button>
+        </div>
+
+        <!-- Live 808 Bass & Snare Reactive Meters -->
+        <div class="flex items-center gap-3 text-[11px] font-mono">
+          <div class="flex items-center gap-1.5">
+            <span class="text-purple-300">808 SUB</span>
+            <div class="w-20 h-2 rounded-full bg-black/70 overflow-hidden border border-purple-500/25">
+              <div id="bassMeterFill" class="h-full bg-gradient-to-r from-[#ec4899] to-[#22c55e] w-1/3 transition-all duration-75"></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-purple-300">SNARE</span>
+            <div class="w-16 h-2 rounded-full bg-black/70 overflow-hidden border border-purple-500/25">
+              <div id="snareMeterFill" class="h-full bg-gradient-to-r from-[#a855f7] to-[#ec4899] w-1/4 transition-all duration-75"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 144s Timeline Bar with Cue Markers -->
+      <div class="relative pt-1">
+        <div id="timelineTrack" class="relative h-3.5 rounded-full bg-[#09060e] border border-purple-500/30 overflow-hidden cursor-pointer">
+          <!-- Colored Act Segments -->
+          <div class="absolute inset-y-0 left-0 w-[6.6%] bg-purple-600/30 border-r border-white/10" title="00:00–00:09.5 CRT Intro"></div>
+          <div class="absolute inset-y-0 left-[6.6%] w-[25.0%] bg-pink-600/30 border-r border-white/10" title="00:09.5–00:45.5 Rooftop Skyline"></div>
+          <div class="absolute inset-y-0 left-[31.6%] w-[20.8%] bg-cyan-500/25 border-r border-white/10" title="00:45.5–01:15.5 Neon Tree + Vocal Glitch"></div>
+          <div class="absolute inset-y-0 left-[52.4%] w-[23.6%] bg-emerald-500/25 border-r border-white/10" title="01:15.5–01:49.5 Snowy Alleyway"></div>
+          <div class="absolute inset-y-0 left-[76.0%] w-[24.0%] bg-amber-500/25" title="01:49.5–02:24.0 Gaming Room Finale"></div>
+
+          <!-- Playhead Fill -->
+          <div id="timelineProgress" class="absolute inset-y-0 left-0 bg-gradient-to-r from-[#ec4899] via-[#a855f7] to-[#22c55e] opacity-90 pointer-events-none" style="width: 7.3%;"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-mono text-purple-300/70 mt-1">
+          <span>00:00 Intro</span>
+          <span>00:10 Skyline Lights</span>
+          <span>00:39 Purple Flames</span>
+          <span>01:00 Datamosh</span>
+          <span>01:16 Xmas Alley</span>
+          <span>01:53 Stream Finale</span>
+          <span>02:24</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Compact VFX Mixer & Performer Mask Controls -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <!-- Panel 1: Christmas Lights & Safe-Zone Mask -->
+      <div class="bg-[#130d1d] border border-purple-500/20 rounded-2xl p-3.5 flex flex-col gap-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#22c55e]">1. Building Christmas Lights</span>
+          <label class="flex items-center gap-1.5 text-xs font-mono cursor-pointer">
+            <input id="toggleLights" type="checkbox" checked class="accent-[#22c55e]" />
+            <span>Active</span>
+          </label>
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex justify-between text-[11px] font-mono">
+            <span class="text-purple-200">Facade Light Glow</span>
+            <span id="lightsValLabel" class="text-[#22c55e]">125%</span>
+          </div>
+          <input id="lightsIntensitySlider" type="range" min="0" max="1.6" step="0.05" value="1.25" class="w-full" />
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex justify-between text-[11px] font-mono">
+            <span class="text-purple-200">Performer Mask Radius</span>
+            <span id="maskRadiusLabel" class="text-[#ec4899]">25%</span>
+          </div>
+          <input id="maskRadiusSlider" type="range" min="0.12" max="0.42" step="0.01" value="0.25" class="w-full" />
+        </div>
+      </div>
+
+      <!-- Panel 2: 12fps Cole Bennett Hand-Drawn Doodles -->
+      <div class="bg-[#130d1d] border border-purple-500/20 rounded-2xl p-3.5 flex flex-col gap-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#ec4899]">2. 12fps Hand-Drawn Doodles</span>
+          <label class="flex items-center gap-1.5 text-xs font-mono cursor-pointer">
+            <input id="toggleDoodles" type="checkbox" checked class="accent-[#ec4899]" />
+            <span>Active</span>
+          </label>
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex justify-between text-[11px] font-mono">
+            <span class="text-purple-200">Neon Scribble &amp; Flame Glow</span>
+            <span id="doodlesValLabel" class="text-[#ec4899]">120%</span>
+          </div>
+          <input id="doodlesIntensitySlider" type="range" min="0" max="1.6" step="0.05" value="1.20" class="w-full" />
+        </div>
+
+        <p class="text-[11px] text-purple-300/80 leading-snug">
+          Triggers 12fps wireframe sleigh, glitching reindeer, reboot crown, toxic-purple flames, devil horns &amp; mic lightning.
+        </p>
+      </div>
+
+      <!-- Panel 3: Datamosh, Thermal Flashes & 808 Shake -->
+      <div class="bg-[#130d1d] border border-purple-500/20 rounded-2xl p-3.5 flex flex-col gap-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#a855f7]">3. Glitch, Thermal &amp; 808 Shake</span>
+          <label class="flex items-center gap-1.5 text-xs font-mono cursor-pointer">
+            <input id="toggleGlitch" type="checkbox" checked class="accent-[#a855f7]" />
+            <span>Active</span>
+          </label>
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex justify-between text-[11px] font-mono">
+            <span class="text-purple-200">808 Impact &amp; Datamosh Mix</span>
+            <span id="glitchValLabel" class="text-[#a855f7]">100%</span>
+          </div>
+          <input id="glitchIntensitySlider" type="range" min="0" max="1.5" step="0.05" value="1.0" class="w-full" />
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <label class="flex items-center gap-1.5 text-[11px] font-mono text-purple-200 cursor-pointer">
+            <input id="toggleMaskGuide" type="checkbox" class="accent-[#22c55e]" />
+            <span>Show Subject Safe-Zone Oval</span>
+          </label>
+          <span class="text-[10px] font-mono text-purple-400">1280×720</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Shopify Hydrogen .JSX Modal -->
+  <div id="hydrogenModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#130d1d] border border-purple-500/35 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-5 py-3.5 border-b border-purple-500/20 flex items-center justify-between">
+        <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
+          Shopify Hydrogen Client-Only Component (ChaosXmasVfxPlayer.jsx)
+        </h2>
+        <div class="flex items-center gap-2">
+          <button id="copyHydrogenCodeBtn" type="button" class="px-3 py-1.5 rounded-xl bg-[#22c55e]/20 hover:bg-[#22c55e]/30 border border-[#22c55e]/50 text-[#22c55e] text-xs font-bold cursor-pointer">
+            Copy .JSX Code
+          </button>
+          <button id="closeHydrogenModalBtn" type="button" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-purple-200 text-xs cursor-pointer">
+            ✕
+          </button>
+        </div>
+      </div>
+      <div class="p-4 overflow-y-auto space-y-2.5">
+        <p class="text-xs text-purple-200/85">
+          Save this component in <code class="text-[#22c55e]">app/components/ChaosXmasVfxPlayer.jsx</code> inside your Shopify Hydrogen storefront and pass your hosted <code class="text-[#ec4899]">.mp4</code> URL to <code class="text-purple-100">videoSrc</code>.
+        </p>
+        <textarea id="hydrogenCodeTextarea" readonly class="w-full h-80 p-3.5 rounded-xl bg-[#09060e] border border-purple-500/25 font-mono text-[11px] text-purple-100 leading-relaxed focus:outline-none"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Chaos Xmas VFX Studio — Live Before/After Previewer
+     * 100% self-contained 1280x720 dual-buffer Canvas2D compositor with:
+     * - Immediate auto-playing 5-scene dark-trap Christmas visual preview on load
+     * - Interactive draggable Before/After split-screen slider (mouse & touch)
+     * - Local .MP4 video compositing with Web Audio FFT 808 reactivity & subject cutout mask
+     * - 1-click .WEBM rendering via MediaRecorder + Shopify Hydrogen JSX export
+     */
+    (function () {
+      const TOTAL_DURATION = 144.0;
+      const WIDTH = 1280;
+      const HEIGHT = 720;
+
+      // DOM Elements
+      const viewportContainer = document.getElementById('viewportContainer');
+      const mainCanvas = document.getElementById('mainCanvas');
+      const mainCtx = mainCanvas.getContext('2d');
+      const sourceVideo = document.getElementById('sourceVideo');
+      const videoFileInput = document.getElementById('videoFileInput');
+      const loadMp4Btn = document.getElementById('loadMp4Btn');
+      const exportWebmBtn = document.getElementById('exportWebmBtn');
+      const exportWebmLabel = document.getElementById('exportWebmLabel');
+      const dropOverlay = document.getElementById('dropOverlay');
+
+      const playPauseBtn = document.getElementById('playPauseBtn');
+      const playPauseIcon = document.getElementById('playPauseIcon');
+      const playPauseText = document.getElementById('playPauseText');
+      const muteBtn = document.getElementById('muteBtn');
+      const resetSplitBtn = document.getElementById('resetSplitBtn');
+
+      const timelineTrack = document.getElementById('timelineTrack');
+      const timelineProgress = document.getElementById('timelineProgress');
+      const hudTimecode = document.getElementById('hudTimecode');
+      const hudSceneTag = document.getElementById('hudSceneTag');
+      const splitHintPill = document.getElementById('splitHintPill');
+      const modeBadge = document.getElementById('modeBadge');
+      const sourceSubtext = document.getElementById('sourceSubtext');
+
+      const bassMeterFill = document.getElementById('bassMeterFill');
+      const snareMeterFill = document.getElementById('snareMeterFill');
+
+      // Sliders & Toggles
+      const toggleLights = document.getElementById('toggleLights');
+      const lightsIntensitySlider = document.getElementById('lightsIntensitySlider');
+      const lightsValLabel = document.getElementById('lightsValLabel');
+      const maskRadiusSlider = document.getElementById('maskRadiusSlider');
+      const maskRadiusLabel = document.getElementById('maskRadiusLabel');
+
+      const toggleDoodles = document.getElementById('toggleDoodles');
+      const doodlesIntensitySlider = document.getElementById('doodlesIntensitySlider');
+      const doodlesValLabel = document.getElementById('doodlesValLabel');
+
+      const toggleGlitch = document.getElementById('toggleGlitch');
+      const glitchIntensitySlider = document.getElementById('glitchIntensitySlider');
+      const glitchValLabel = document.getElementById('glitchValLabel');
+      const toggleMaskGuide = document.getElementById('toggleMaskGuide');
+
+      // Banner & Hydrogen Modal
+      const statusBanner = document.getElementById('statusBanner');
+      const statusBannerText = document.getElementById('statusBannerText');
+      const closeBannerBtn = document.getElementById('closeBannerBtn');
+      const openHydrogenBtn = document.getElementById('openHydrogenBtn');
+      const hydrogenModal = document.getElementById('hydrogenModal');
+      const closeHydrogenModalBtn = document.getElementById('closeHydrogenModalBtn');
+      const copyHydrogenCodeBtn = document.getElementById('copyHydrogenCodeBtn');
+      const hydrogenCodeTextarea = document.getElementById('hydrogenCodeTextarea');
+
+      // Offscreen Buffers for Before (Raw) and After (Christmas Lights + VFX)
+      const beforeCanvas = document.createElement('canvas');
+      beforeCanvas.width = WIDTH;
+      beforeCanvas.height = HEIGHT;
+      const bCtx = beforeCanvas.getContext('2d');
+
+      const afterCanvas = document.createElement('canvas');
+      afterCanvas.width = WIDTH;
+      afterCanvas.height = HEIGHT;
+      const aCtx = afterCanvas.getContext('2d');
+
+      // Dedicated offscreen layer for masked background Christmas lights
+      const lightMaskCanvas = document.createElement('canvas');
+      lightMaskCanvas.width = WIDTH;
+      lightMaskCanvas.height = HEIGHT;
+      const lmCtx = lightMaskCanvas.getContext('2d');
+
+      mainCanvas.width = WIDTH;
+      mainCanvas.height = HEIGHT;
+
+      // Studio State (Starts immediately at 00:10.5 — Scene 1 Rooftop Skyline & Christmas Buildings!)
+      const state = {
+        isPlaying: true,
+        currentTime: 10.5,
+        hasLocalVideo: false,
+        videoObjectUrl: null,
+        viewMode: 'split', // 'split' | 'after' | 'before'
+        splitRatio: 0.5,
+        isDraggingSplit: false,
+        isMuted: false,
+        isExporting: false,
+        lightsEnabled: true,
+        lightsIntensity: 1.25,
+        maskRadius: 0.25,
+        doodlesEnabled: true,
+        doodlesIntensity: 1.20,
+        glitchEnabled: true,
+        glitchIntensity: 1.0,
+        showMaskGuide: false,
+      };
+
+      // Web Audio API refs
+      let audioCtx = null;
+      let analyser = null;
+      let mediaStreamDest = null;
+      let mediaRecorder = null;
+      let recordedChunks = [];
+      const freqData = new Uint8Array(128);
+
+      // Deterministic PRNG (Mulberry32) for rock-solid architectural lights & snow
+      function mulberry32(seed) {
+        let a = seed >>> 0;
+        return function () {
+          let t = (a += 0x6d2b79f5);
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      // Precompute architectural buildings, Christmas bulb grids, wreaths, and snow particles
+      const sceneAssets = (function buildSceneAssets() {
+        const rand = mulberry32(20261225);
+        const xmasPalette = ['#ff2442', '#22c55e', '#ffd166', '#00f0ff', '#ec4899'];
+
+        // Rooftop Skyline Skyscrapers (Left & Right clusters framing the center subject)
+        const towers = [
+          // Left cluster
+          { x: 18, y: 110, w: 96, h: 335, tree: false, goldWindows: true },
+          { x: 124, y: 42, w: 142, h: 403, tree: true, goldWindows: false },
+          { x: 276, y: 135, w: 108, h: 310, tree: false, goldWindows: true },
+          { x: 392, y: 175, w: 86, h: 270, tree: true, goldWindows: false },
+          // Right cluster
+          { x: 805, y: 165, w: 92, h: 280, tree: true, goldWindows: false },
+          { x: 906, y: 55, w: 148, h: 390, tree: true, goldWindows: false },
+          { x: 1064, y: 120, w: 102, h: 325, tree: false, goldWindows: true },
+          { x: 1174, y: 92, w: 90, h: 353, tree: false, goldWindows: true },
+        ];
+
+        const rooftopBulbs = [];
+        const rooftopWindows = [];
+
+        towers.forEach((tw, idx) => {
+          const cols = Math.max(5, Math.floor(tw.w / 14));
+          const rows = Math.max(10, Math.floor(tw.h / 14));
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              const bx = tw.x + ((c + 0.5) / cols) * tw.w;
+              const by = tw.y + ((r + 0.5) / rows) * tw.h;
+              const nx = (c + 0.5) / cols;
+              const ny = (r + 0.5) / rows;
+              const isPerimeter = c === 0 || c === cols - 1 || r === 0;
+              const inTree =
+                tw.tree &&
+                ny > 0.16 &&
+                ny < 0.86 &&
+                Math.abs(nx - 0.5) < (ny - 0.14) * 0.54;
+
+              if (isPerimeter || inTree || rand() > 0.58) {
+                rooftopBulbs.push({
+                  x: bx,
+                  y: by,
+                  color: inTree
+                    ? ny < 0.22
+                      ? '#ffd166'
+                      : xmasPalette[(r + c + idx) % xmasPalette.length]
+                    : isPerimeter
+                    ? idx % 2 === 0
+                      ? '#ff2442'
+                      : '#22c55e'
+                    : xmasPalette[Math.floor(rand() * xmasPalette.length)],
+                  phase: rand() * Math.PI * 2,
+                  speed: 2.6 + rand() * 4.2,
+                  radius: inTree ? 2.8 : isPerimeter ? 2.4 : 1.9,
+                  cascadeIdx: (idx * 2 + Math.floor(ny * 8)) % 8,
+                });
+              }
+
+              if (tw.goldWindows && r % 2 === 1 && c % 2 === 1 && rand() > 0.35) {
+                rooftopWindows.push({
+                  x: bx - 4,
+                  y: by - 3,
+                  w: 8,
+                  h: 6,
+                  warm: rand() > 0.3,
+                  phase: rand() * 6.28,
+                });
+              }
+            }
+          }
+        });
+
+        // Alleyway Garlands & Wreaths (Scene 4: 01:16 - 01:49)
+        const alleyGarlands = [];
+        [86, 162, 245, 330, 418, 502].forEach((gy, rowIdx) => {
+          const x0 = 24 + (rowIdx % 2) * 28;
+          const x1 = 685 - rowIdx * 24;
+          const steps = 32;
+          for (let i = 0; i <= steps; i++) {
+            const u = i / steps;
+            const sag = Math.sin(u * Math.PI) * 32;
+            alleyGarlands.push({
+              x: x0 + u * (x1 - x0),
+              y: gy + sag,
+              color: xmasPalette[(i + rowIdx) % xmasPalette.length],
+              phase: rand() * Math.PI * 2,
+              speed: 3.0 + rand() * 3.8,
+              radius: 2.6,
+            });
+          }
+        });
+
+        const alleyWreaths = [
+          { x: 135, y: 255, r: 32 },
+          { x: 310, y: 195, r: 26 },
+          { x: 495, y: 245, r: 24 },
+          { x: 195, y: 435, r: 34 },
+        ];
+
+        // Blizzard Snowflakes
+        const snowflakes = Array.from({ length: 150 }, () => ({
+          x: rand() * WIDTH,
+          y: rand() * HEIGHT,
+          vx: -38 - rand() * 55,
+          vy: 65 + rand() * 95,
+          size: 1.4 + rand() * 2.8,
+          alpha: 0.35 + rand() * 0.6,
+        }));
+
+        return { towers, rooftopBulbs, rooftopWindows, alleyGarlands, alleyWreaths, snowflakes };
+      })();
+
+      // Helper: Format seconds as MM:SS.d
+      function formatTime(sec) {
+        const s = Math.max(0, Math.min(TOTAL_DURATION, sec));
+        const m = Math.floor(s / 60);
+        const rem = Math.floor(s % 60);
+        const tenths = Math.floor((s % 1) * 10);
+        return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}.${tenths}`;
+      }
+
+      // Helper: Show inline studio status banner
+      function showBanner(msg) {
+        statusBannerText.textContent = msg;
+        statusBanner.classList.remove('hidden');
+      }
+
+      closeBannerBtn.addEventListener('click', () => {
+        statusBanner.classList.add('hidden');
+      });
+
+      // Helper: Draw a 12fps hand-drawn glowing neon stroke path
+      function drawNeonStroke(ctx, pts, color, lineWidth = 3.5, closed = false, glow = 18) {
+        if (!pts || pts.length < 2) return;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = color;
+        ctx.shadowBlur = glow;
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for (let i = 1; i < pts.length; i++) {
+          ctx.lineTo(pts[i][0], pts[i][1]);
+        }
+        if (closed) ctx.closePath();
+        ctx.stroke();
+
+        // Crisp white inner filament
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(1.2, lineWidth * 0.34);
+        ctx.shadowBlur = 4;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      /**
+       * Renders the detailed stylized character (pastel pink-blonde high twin pigtails,
+       * pink cat-ear Santa hat / headphones, small black heart tattoo beneath her LEFT eye,
+       * and pink-and-red "CHAOS" varsity jacket) so every scene is unmistakable and expressive.
+       */
+      function drawStylizedCharacter(ctx, cx, cy, scale, t, bass, options = {}) {
+        const {
+          hasSantaCatHat = true,
+          hasMic = false,
+          pose = 'rooftop', // 'rooftop' | 'drop' | 'alley' | 'desk'
+          isLit = true,
+        } = options;
+
+        const bob = Math.sin(t * 7.4) * 3.5 * scale + bass * 4 * scale;
+        const headY = cy - 78 * scale + bob;
+
+        ctx.save();
+        ctx.translate(cx, 0);
+
+        // Back Twin Pigtails (Pastel Pink-Blonde)
+        const drawPigtail = (dir) => {
+          ctx.save();
+          const sway = Math.sin(t * 5.2 + dir) * 6 * scale;
+          const tailGrad = ctx.createLinearGradient(0, headY - 25 * scale, dir * 95 * scale, headY + 125 * scale);
+          tailGrad.addColorStop(0, isLit ? '#f9a8d4' : '#9d6b89');
+          tailGrad.addColorStop(0.55, isLit ? '#f472b6' : '#7c526c');
+          tailGrad.addColorStop(1, isLit ? '#fbcfe8' : '#8d647d');
+          ctx.fillStyle = tailGrad;
+          ctx.beginPath();
+          ctx.moveTo(dir * 34 * scale, headY - 24 * scale);
+          ctx.bezierCurveTo(
+            dir * (88 * scale + sway),
+            headY - 18 * scale,
+            dir * (104 * scale + sway),
+            headY + 65 * scale,
+            dir * (76 * scale + sway),
+            headY + 132 * scale
+          );
+          ctx.bezierCurveTo(
+            dir * (54 * scale + sway * 0.5),
+            headY + 95 * scale,
+            dir * 48 * scale,
+            headY + 35 * scale,
+            dir * 32 * scale,
+            headY - 8 * scale
+          );
+          ctx.closePath();
+          ctx.fill();
+
+          // Black ribbon bow at pigtail root
+          ctx.fillStyle = '#09060e';
+          ctx.beginPath();
+          ctx.ellipse(dir * 38 * scale, headY - 22 * scale, 11 * scale, 6 * scale, dir * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        };
+
+        drawPigtail(-1);
+        drawPigtail(1);
+
+        // Torso & Pink/Red "CHAOS" Varsity Bomber Jacket
+        const shoulderY = cy - 16 * scale + bob * 0.6;
+        // Sleeves (Pastel Pink)
+        ctx.fillStyle = isLit ? '#f472b6' : '#8b5272';
+        ctx.beginPath();
+        ctx.roundRect(-94 * scale, shoulderY, 188 * scale, 152 * scale, 36 * scale);
+        ctx.fill();
+
+        // Jacket Center Body (Deep Crimson / Black)
+        const bodyGrad = ctx.createLinearGradient(0, shoulderY, 0, shoulderY + 150 * scale);
+        bodyGrad.addColorStop(0, isLit ? '#be123c' : '#4a1525');
+        bodyGrad.addColorStop(1, '#120b1c');
+        ctx.fillStyle = bodyGrad;
+        ctx.beginPath();
+        ctx.roundRect(-58 * scale, shoulderY, 116 * scale, 152 * scale, 16 * scale);
+        ctx.fill();
+
+        // White/Pink Varsity Trim & "CHAOS" Chest Patch
+        ctx.strokeStyle = isLit ? '#fbcfe8' : '#6b4c5e';
+        ctx.lineWidth = 2.5 * scale;
+        ctx.strokeRect(-56 * scale, shoulderY + 2 * scale, 112 * scale, 148 * scale);
+
+        ctx.fillStyle = '#09060e';
+        ctx.fillRect(14 * scale, shoulderY + 34 * scale, 36 * scale, 16 * scale);
+        ctx.fillStyle = isLit ? '#f9a8d4' : '#9ca3af';
+        ctx.font = `800 ${Math.round(9 * scale)}px "JetBrains Mono", monospace`;
+        ctx.textAlign = 'center';
+        ctx.fillText('CHAOS', 32 * scale, shoulderY + 45 * scale);
+
+        // Inner Black Keyhole Crop Top + Silver Heart Choker
+        ctx.fillStyle = '#09060e';
+        ctx.beginPath();
+        ctx.moveTo(-24 * scale, shoulderY);
+        ctx.lineTo(24 * scale, shoulderY);
+        ctx.lineTo(18 * scale, shoulderY + 75 * scale);
+        ctx.lineTo(-18 * scale, shoulderY + 75 * scale);
+        ctx.closePath();
+        ctx.fill();
+
+        // Neck & Silver O-Ring Heart Choker
+        ctx.fillStyle = isLit ? '#f6d5c8' : '#b5988e';
+        ctx.fillRect(-13 * scale, headY + 36 * scale, 26 * scale, 26 * scale);
+        ctx.fillStyle = '#09060e';
+        ctx.fillRect(-15 * scale, headY + 44 * scale, 30 * scale, 7 * scale);
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 2 * scale;
+        ctx.beginPath();
+        ctx.arc(0, headY + 47.5 * scale, 4.5 * scale, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Head & Face (Realistic soft peach-ivory skin shading)
+        const faceGrad = ctx.createRadialGradient(0, headY - 4 * scale, 8 * scale, 0, headY + 4 * scale, 48 * scale);
+        faceGrad.addColorStop(0, isLit ? '#fde6dc' : '#bfa399');
+        faceGrad.addColorStop(1, isLit ? '#e9bfb0' : '#947870');
+        ctx.fillStyle = faceGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, headY, 38 * scale, 45 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Front Framing Pink-Blonde Bangs
+        ctx.fillStyle = isLit ? '#f9a8d4' : '#9d6b89';
+        ctx.beginPath();
+        ctx.moveTo(-40 * scale, headY - 12 * scale);
+        ctx.quadraticCurveTo(-34 * scale, headY - 48 * scale, 0, headY - 46 * scale);
+        ctx.quadraticCurveTo(34 * scale, headY - 48 * scale, 40 * scale, headY - 12 * scale);
+        ctx.quadraticCurveTo(22 * scale, headY - 26 * scale, 8 * scale, headY - 14 * scale);
+        ctx.quadraticCurveTo(0, headY - 25 * scale, -10 * scale, headY - 14 * scale);
+        ctx.quadraticCurveTo(-24 * scale, headY - 26 * scale, -40 * scale, headY - 12 * scale);
+        ctx.fill();
+
+        // Expressive Eyes (Viewer Left = Character's Right Eye; Viewer Right = Character's LEFT Eye)
+        const eyeY = headY - 1 * scale;
+        const eyeOffsetX = 14.5 * scale;
+        [-1, 1].forEach((side) => {
+          const ex = side * eyeOffsetX;
+          // Eye white
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.ellipse(ex, eyeY, 7.5 * scale, 5.2 * scale, 0, 0, Math.PI * 2);
+          ctx.fill();
+          // Violet-blue iris
+          ctx.fillStyle = isLit ? '#9333ea' : '#581c87';
+          ctx.beginPath();
+          ctx.arc(ex, eyeY, 4.2 * scale, 0, Math.PI * 2);
+          ctx.fill();
+          // Pupil + specular catchlight
+          ctx.fillStyle = '#09060e';
+          ctx.beginPath();
+          ctx.arc(ex, eyeY, 2.1 * scale, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(ex - 1.4 * scale, eyeY - 1.4 * scale, 1.2 * scale, 0, Math.PI * 2);
+          ctx.fill();
+          // Eyeliner wing
+          ctx.strokeStyle = '#09060e';
+          ctx.lineWidth = 2 * scale;
+          ctx.beginPath();
+          ctx.moveTo(ex - 8 * scale, eyeY - 2 * scale);
+          ctx.quadraticCurveTo(ex, eyeY - 7 * scale, ex + 8.5 * scale, eyeY - 2.5 * scale);
+          ctx.stroke();
+        });
+
+        // MANDATORY SIGNATURE TATTOO: Small Bold Black Heart Directly Beneath Her LEFT Eye (Viewer's Right)
+        const heartX = eyeOffsetX + 2 * scale;
+        const heartY = eyeY + 12.5 * scale;
+        const hs = 3.4 * scale;
+        ctx.save();
+        ctx.fillStyle = '#09060e';
+        ctx.beginPath();
+        ctx.moveTo(heartX, heartY + hs * 0.9);
+        ctx.bezierCurveTo(heartX - hs * 1.4, heartY - hs * 0.3, heartX - hs * 0.7, heartY - hs * 1.3, heartX, heartY - hs * 0.45);
+        ctx.bezierCurveTo(heartX + hs * 0.7, heartY - hs * 1.3, heartX + hs * 1.4, heartY - hs * 0.3, heartX, heartY + hs * 0.9);
+        ctx.fill();
+        ctx.restore();
+
+        // Lip-Synced Mouth (Subtle rhythmic rap articulation)
+        const mouthOpen = Math.max(1.5, Math.abs(Math.sin(t * 14)) * 5.5) * scale;
+        ctx.fillStyle = isLit ? '#db2777' : '#831843';
+        ctx.beginPath();
+        ctx.ellipse(0, headY + 21 * scale, 8.5 * scale, mouthOpen, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pink Cat-Ear Santa Hat + Glowing Pink Kitty Headphones
+        if (hasSantaCatHat) {
+          // Glowing cat ears
+          [-1, 1].forEach((side) => {
+            ctx.save();
+            ctx.fillStyle = isLit ? '#ec4899' : '#701a75';
+            if (isLit) {
+              ctx.shadowColor = '#ec4899';
+              ctx.shadowBlur = 14;
+            }
+            ctx.beginPath();
+            ctx.moveTo(side * 16 * scale, headY - 44 * scale);
+            ctx.lineTo(side * 34 * scale, headY - 70 * scale);
+            ctx.lineTo(side * 38 * scale, headY - 38 * scale);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+          });
+
+          // Pink velvet Santa cap + fluffy white faux-fur brim
+          ctx.fillStyle = isLit ? '#f43f5e' : '#7f1d1d';
+          ctx.beginPath();
+          ctx.moveTo(-36 * scale, headY - 36 * scale);
+          ctx.quadraticCurveTo(0, headY - 76 * scale, 48 * scale, headY - 46 * scale);
+          ctx.lineTo(58 * scale, headY - 18 * scale);
+          ctx.lineTo(36 * scale, headY - 34 * scale);
+          ctx.closePath();
+          ctx.fill();
+
+          // White pom-pom
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(58 * scale, headY - 16 * scale, 9 * scale, 0, Math.PI * 2);
+          ctx.fill();
+
+          // White plush brim
+          ctx.fillStyle = isLit ? '#ffffff' : '#cbd5e1';
+          ctx.beginPath();
+          ctx.roundRect(-41 * scale, headY - 43 * scale, 82 * scale, 14 * scale, 7 * scale);
+          ctx.fill();
+        }
+
+        // Raised Hands for Beat Drop Pose
+        if (pose === 'drop') {
+          [-1, 1].forEach((side) => {
+            ctx.fillStyle = '#09060e';
+            ctx.beginPath();
+            ctx.roundRect(side * 86 * scale - 12 * scale, headY - 10 * scale, 24 * scale, 34 * scale, 8 * scale);
+            ctx.fill();
+          });
+        }
+
+        // Studio Broadcast Boom Mic in Gaming Room Finale
+        if (hasMic) {
+          ctx.strokeStyle = '#1e1b2e';
+          ctx.lineWidth = 6 * scale;
+          ctx.beginPath();
+          ctx.moveTo(-130 * scale, shoulderY + 120 * scale);
+          ctx.lineTo(-22 * scale, headY + 34 * scale);
+          ctx.stroke();
+
+          ctx.fillStyle = '#0f172a';
+          ctx.beginPath();
+          ctx.roundRect(-28 * scale, headY + 16 * scale, 22 * scale, 34 * scale, 10 * scale);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      /**
+       * Renders either the BEFORE (unlit dark raw) or AFTER (illuminated Christmas lights + VFX)
+       * version of any of the 5 scenes onto the target Canvas2D context.
+       */
+      function renderScenePass(ctx, t, bass, snare, isAfter) {
+        ctx.save();
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+        // 808 Sub-bass camera impact shake (only on AFTER pass)
+        let shakeX = 0;
+        let shakeY = 0;
+        const inDropZone =
+          (t >= 10 && t <= 28) ||
+          (t >= 39.5 && t <= 45.5) ||
+          (t >= 46 && t <= 59.5) ||
+          (t >= 113 && t <= 141);
+        if (isAfter && state.glitchEnabled && inDropZone && bass > 0.65) {
+          const mag = ((bass - 0.65) / 0.35) * 12 * state.glitchIntensity;
+          shakeX = (Math.random() - 0.5) * 2 * mag;
+          shakeY = (Math.random() - 0.5) * 2 * mag;
+        }
+
+        // 4-frame Thermal / Negative Color Inversion on exact snare/vocal hits (AFTER pass only)
+        const thermalCues = [
+          [8.0, 8.24],
+          [14.8, 15.02],
+          [39.5, 39.74],
+          [45.3, 45.5],
+          [62.0, 62.2],
+          [65.5, 65.7],
+          [68.5, 68.7],
+          [108.0, 108.24],
+          [113.2, 113.4],
+          [129.0, 129.2],
+        ];
+        const isThermal =
+          isAfter &&
+          state.glitchEnabled &&
+          state.glitchIntensity > 0.1 &&
+          thermalCues.some(([s, e]) => t >= s && t <= e);
+
+        if (isThermal) {
+          ctx.filter = `invert(1) hue-rotate(180deg) contrast(${(1 + 0.4 * state.glitchIntensity).toFixed(2)})`;
+        }
+
+        // =========================================================================
+        // CASE A: USER LOADED THEIR REAL .MP4 VIDEO FILE
+        // =========================================================================
+        if (state.hasLocalVideo && sourceVideo.readyState >= 2) {
+          ctx.drawImage(sourceVideo, shakeX, shakeY, WIDTH, HEIGHT);
+          ctx.filter = 'none';
+
+          // If BEFORE pass, return clean raw video frame immediately!
+          if (!isAfter) {
+            ctx.restore();
+            return;
+          }
+
+          // Composite masked background Christmas lights over user's real video
+          if (state.lightsEnabled && state.lightsIntensity > 0.05) {
+            compositeBuildingLights(ctx, t, bass, shakeX, shakeY, true);
+          }
+
+          // Composite 12fps Cole Bennett doodles & datamosh over user's real video
+          if (state.doodlesEnabled && state.doodlesIntensity > 0.05) {
+            render12FpsDoodles(ctx, t, bass);
+          }
+          if (state.glitchEnabled && t >= 60.0 && t <= 69.5) {
+            renderDatamoshPass(ctx, t);
+          }
+          if (t >= 142.8) {
+            renderCrtPowerOff(ctx, t);
+          }
+
+          ctx.restore();
+          return;
+        }
+
+        // =========================================================================
+        // CASE B: AUTO-PLAYING 5-SCENE VISUAL PREVIEW (BEFORE vs. AFTER)
+        // =========================================================================
+        ctx.save();
+        ctx.translate(shakeX, shakeY);
+
+        if (t < 45.5) {
+          // -----------------------------------------------------------------------
+          // SCENE 1 (00:00–00:39) & SCENE 2 (00:39–00:45.5): ROOFTOP SKYLINE & R34
+          // -----------------------------------------------------------------------
+          const skyGrad = ctx.createLinearGradient(0, 0, 0, HEIGHT * 0.65);
+          if (isAfter) {
+            skyGrad.addColorStop(0, '#140926');
+            skyGrad.addColorStop(0.55, '#2e1052');
+            skyGrad.addColorStop(1, '#4c1d7a');
+          } else {
+            // BEFORE: Flat, cold, dark unlit night sky
+            skyGrad.addColorStop(0, '#09080f');
+            skyGrad.addColorStop(0.6, '#141120');
+            skyGrad.addColorStop(1, '#1d192b');
+          }
+          ctx.fillStyle = skyGrad;
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          // Draw City Skyscrapers (Dark silhouettes in BEFORE; illuminated in AFTER)
+          sceneAssets.towers.forEach((tw) => {
+            ctx.fillStyle = isAfter ? '#120a24' : '#0c0a14';
+            ctx.fillRect(tw.x, tw.y, tw.w, tw.h);
+            ctx.strokeStyle = isAfter ? 'rgba(168, 85, 247, 0.45)' : 'rgba(255, 255, 255, 0.06)';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(tw.x, tw.y, tw.w, tw.h);
+          });
+
+          // AFTER ONLY: Warm festive golden windows + thousands of twinkling Christmas lights!
+          if (isAfter && state.lightsEnabled && state.lightsIntensity > 0.05) {
+            // Warm golden building windows
+            sceneAssets.rooftopWindows.forEach((win) => {
+              const flicker = 0.65 + 0.35 * Math.sin(t * 2.2 + win.phase);
+              ctx.fillStyle = win.warm
+                ? `rgba(255, 209, 102, ${0.55 * flicker * Math.min(1, state.lightsIntensity)})`
+                : `rgba(236, 72, 153, ${0.42 * flicker * Math.min(1, state.lightsIntensity)})`;
+              ctx.fillRect(win.x, win.y, win.w, win.h);
+            });
+
+            compositeBuildingLights(ctx, t, bass, 0, 0, false);
+          }
+
+          // Rooftop Concrete Parapet Wall
+          ctx.fillStyle = isAfter ? '#221738' : '#13101c';
+          ctx.fillRect(0, 442, WIDTH, 48);
+          // Snow cap on parapet
+          ctx.fillStyle = isAfter ? '#e9d5ff' : '#4b445c';
+          ctx.fillRect(0, 436, WIDTH, 10);
+
+          // Right Rooftop Neon Sign: "NORTH POLE CHAOS"
+          ctx.save();
+          ctx.font = '800 34px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          if (isAfter) {
+            ctx.fillStyle = '#22c55e';
+            ctx.shadowColor = '#22c55e';
+            ctx.shadowBlur = 20;
+            ctx.fillText('NORTH POLE', 1055, 255);
+            ctx.fillStyle = '#ec4899';
+            ctx.shadowColor = '#ec4899';
+            ctx.shadowBlur = 24;
+            ctx.fillText('CHAOS', 1055, 315);
+          } else {
+            // Unlit/dim sign in BEFORE
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.22)';
+            ctx.fillText('NORTH POLE', 1055, 255);
+            ctx.fillText('CHAOS', 1055, 315);
+          }
+          ctx.restore();
+
+          // Snow-covered Rooftop Ground
+          ctx.fillStyle = isAfter ? '#2b1d47' : '#14111f';
+          ctx.fillRect(0, 490, WIDTH, 230);
+
+          // Metallic Purple Nissan Skyline GT-R R34 Hood & Windshield
+          const hoodGrad = ctx.createLinearGradient(250, 430, 1030, 720);
+          if (isAfter) {
+            hoodGrad.addColorStop(0, '#3b1566');
+            hoodGrad.addColorStop(0.5, '#7e22ce');
+            hoodGrad.addColorStop(1, '#290d4a');
+          } else {
+            hoodGrad.addColorStop(0, '#1e162b');
+            hoodGrad.addColorStop(0.5, '#2d2140');
+            hoodGrad.addColorStop(1, '#161021');
+          }
+          ctx.fillStyle = hoodGrad;
+          ctx.beginPath();
+          ctx.moveTo(210, 720);
+          ctx.lineTo(315, 455);
+          ctx.lineTo(965, 455);
+          ctx.lineTo(1070, 720);
+          ctx.closePath();
+          ctx.fill();
+
+          // R34 Windshield Glass
+          ctx.fillStyle = '#09060e';
+          ctx.beginPath();
+          ctx.moveTo(355, 455);
+          ctx.lineTo(410, 365);
+          ctx.lineTo(870, 365);
+          ctx.lineTo(925, 455);
+          ctx.closePath();
+          ctx.fill();
+
+          // Snow drift on R34 hood
+          ctx.fillStyle = isAfter ? 'rgba(243, 232, 255, 0.78)' : 'rgba(148, 163, 184, 0.28)';
+          ctx.beginPath();
+          ctx.ellipse(420, 560, 110, 26, -0.1, 0, Math.PI * 2);
+          ctx.ellipse(860, 575, 105, 24, 0.12, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Chrome Skull Wrapped in Fairy Lights on Right Hood
+          const skullX = 815;
+          const skullY = 530;
+          ctx.fillStyle = isAfter ? '#cbd5e1' : '#475569';
+          ctx.beginPath();
+          ctx.arc(skullX, skullY, 26, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillRect(skullX - 14, skullY + 16, 28, 16);
+          ctx.fillStyle = '#09060e';
+          ctx.beginPath();
+          ctx.arc(skullX - 9, skullY - 2, 6, 0, Math.PI * 2);
+          ctx.arc(skullX + 9, skullY - 2, 6, 0, Math.PI * 2);
+          ctx.fill();
+          if (isAfter) {
+            ['#ffd166', '#ec4899', '#22c55e', '#00f0ff'].forEach((col, i) => {
+              ctx.fillStyle = col;
+              ctx.shadowColor = col;
+              ctx.shadowBlur = 12;
+              ctx.beginPath();
+              ctx.arc(skullX - 18 + i * 12, skullY - 14 + (i % 2) * 8, 3.2, 0, Math.PI * 2);
+              ctx.fill();
+            });
+            ctx.shadowBlur = 0;
+          }
+
+          // Center Foreground Character
+          const isDropPose = t >= 39.0 && t <= 45.5;
+          drawStylizedCharacter(ctx, 640, 470, 1.48, t, bass, {
+            hasSantaCatHat: true,
+            pose: isDropPose ? 'drop' : 'rooftop',
+            isLit: isAfter,
+          });
+
+          // AFTER ONLY: 12fps Cole Bennett Doodles (Sleigh, Reindeer, Reboot Crown, Purple Flames) + Heavy Blizzard Snow
+          if (isAfter) {
+            if (state.doodlesEnabled && state.doodlesIntensity > 0.05) {
+              render12FpsDoodles(ctx, t, bass);
+            }
+            renderSnowParticles(ctx, t, 1.0);
+          } else {
+            renderSnowParticles(ctx, t, 0.22);
+          }
+
+        } else if (t < 75.5) {
+          // -----------------------------------------------------------------------
+          // SCENE 3 (00:45.5–01:15.5): NEON TREE STAGE & VOCAL DATAMOSH GLITCH
+          // -----------------------------------------------------------------------
+          const bg = ctx.createRadialGradient(640, 360, 40, 640, 360, 740);
+          bg.addColorStop(0, isAfter ? '#2e0d4a' : '#14101f');
+          bg.addColorStop(1, '#09060e');
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          // Stacked CRT TVs on Left & Right Walls
+          for (let row = 0; row < 4; row++) {
+            [45, 215, 925, 1095].forEach((tx, idx) => {
+              const ty = 75 + row * 145;
+              ctx.fillStyle = '#110b1c';
+              ctx.fillRect(tx, ty, 145, 118);
+              ctx.strokeStyle = isAfter ? '#a855f7' : '#2d243d';
+              ctx.lineWidth = 2;
+              ctx.strokeRect(tx, ty, 145, 118);
+
+              // CRT screen glow
+              ctx.fillStyle = isAfter
+                ? (row + idx) % 2 === 0
+                  ? 'rgba(236, 72, 153, 0.35)'
+                  : 'rgba(34, 197, 94, 0.28)'
+                : 'rgba(148, 163, 184, 0.08)';
+              ctx.fillRect(tx + 10, ty + 10, 125, 98);
+            });
+          }
+
+          // Center Glowing Neon Wire Christmas Tree
+          ctx.save();
+          ctx.strokeStyle = isAfter ? '#ec4899' : '#3b2d4d';
+          if (isAfter) {
+            ctx.shadowColor = '#ec4899';
+            ctx.shadowBlur = 24 + bass * 20;
+          }
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(640, 45);
+          ctx.lineTo(420, 620);
+          ctx.lineTo(860, 620);
+          ctx.closePath();
+          ctx.stroke();
+          ctx.restore();
+
+          // Center Performer
+          drawStylizedCharacter(ctx, 640, 485, 1.45, t, bass, {
+            hasSantaCatHat: true,
+            pose: 'rooftop',
+            isLit: isAfter,
+          });
+
+          if (isAfter) {
+            if (state.doodlesEnabled && state.doodlesIntensity > 0.05) {
+              render12FpsDoodles(ctx, t, bass);
+            }
+            if (state.glitchEnabled && t >= 60.0 && t <= 69.5) {
+              renderDatamoshPass(ctx, t);
+            }
+          }
+
+        } else if (t < 109.5) {
+          // -----------------------------------------------------------------------
+          // SCENE 4 (01:15.5–01:49.5): SNOWY CYBERPUNK ALLEYWAY WRAPPED IN LIGHTS
+          // -----------------------------------------------------------------------
+          const alleySky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+          alleySky.addColorStop(0, isAfter ? '#160c2e' : '#09080f');
+          alleySky.addColorStop(1, isAfter ? '#281447' : '#12101c');
+          ctx.fillStyle = alleySky;
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          // Multi-Story Brick & Cyberpunk Alleyway Buildings (Left & Center-Left)
+          ctx.fillStyle = isAfter ? '#1c122e' : '#0f0d17';
+          ctx.fillRect(0, 0, 360, 620);
+          ctx.fillStyle = isAfter ? '#160e26' : '#0c0a12';
+          ctx.fillRect(360, 60, 290, 520);
+
+          // Fire escape balconies
+          ctx.strokeStyle = isAfter ? '#4c3575' : '#1f1b2c';
+          ctx.lineWidth = 4;
+          [175, 345, 515].forEach((by) => {
+            ctx.strokeRect(25, by, 260, 42);
+          });
+
+          // Holographic Neon Christmas Tree in Center of Alleyway
+          if (isAfter) {
+            ctx.save();
+            ctx.strokeStyle = '#00f0ff';
+            ctx.shadowColor = '#ec4899';
+            ctx.shadowBlur = 22;
+            ctx.lineWidth = 3.5;
+            for (let ring = 0; ring < 7; ring++) {
+              const ry = 310 + ring * 34;
+              const rw = 16 + ring * 14;
+              ctx.beginPath();
+              ctx.ellipse(495, ry, rw, 8, 0, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+            ctx.restore();
+
+            // Neon "CHAOS" vertical alley sign
+            ctx.save();
+            ctx.fillStyle = '#09060e';
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 3;
+            ctx.fillRect(375, 130, 54, 195);
+            ctx.strokeRect(375, 130, 54, 195);
+            ctx.font = '800 22px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ['C', 'H', 'A', 'O', 'S'].forEach((ch, idx) => {
+              ctx.fillStyle = idx % 2 === 0 ? '#22c55e' : '#ec4899';
+              ctx.fillText(ch, 402, 165 + idx * 34);
+            });
+            ctx.restore();
+
+            // Twinkling Christmas Garlands & Wreaths on Alley Buildings
+            if (state.lightsEnabled && state.lightsIntensity > 0.05) {
+              compositeBuildingLights(ctx, t, bass, 0, 0, false);
+            }
+          }
+
+          // Snowy Alleyway Street & Foreground Railing
+          ctx.fillStyle = isAfter ? '#31234d' : '#171424';
+          ctx.fillRect(0, 570, WIDTH, 150);
+
+          // Character leaning on snowy railing (Right Foreground: x = 945)
+          drawStylizedCharacter(ctx, 945, 480, 1.52, t, bass, {
+            hasSantaCatHat: false,
+            pose: 'alley',
+            isLit: isAfter,
+          });
+
+          // Foreground Metal Railing with Snow
+          ctx.fillStyle = '#1e1b2e';
+          ctx.fillRect(720, 545, 560, 16);
+          ctx.fillStyle = isAfter ? '#f3e8ff' : '#64748b';
+          ctx.fillRect(720, 538, 560, 9);
+
+          if (isAfter) {
+            if (state.doodlesEnabled && state.doodlesIntensity > 0.05) {
+              render12FpsDoodles(ctx, t, bass);
+            }
+            renderSnowParticles(ctx, t, 0.95);
+          }
+
+        } else {
+          // -----------------------------------------------------------------------
+          // SCENE 5 (01:49.5–02:24.0): GAMING ROOM FINALE & CRT POWER-OFF
+          // -----------------------------------------------------------------------
+          ctx.fillStyle = isAfter ? '#120b21' : '#09070f';
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          // Frost-Rimmed Window Showing City Skyline Behind Streamer
+          ctx.fillStyle = isAfter ? '#1d1038' : '#0c0a14';
+          ctx.fillRect(380, 35, 520, 360);
+          ctx.strokeStyle = '#2e2442';
+          ctx.lineWidth = 8;
+          ctx.strokeRect(380, 35, 520, 360);
+
+          if (isAfter && state.lightsEnabled && state.lightsIntensity > 0.05) {
+            compositeBuildingLights(ctx, t, bass, 0, 0, false);
+          }
+
+          // Left Monitor: "MERRY CHRISTMAS CHAT"
+          ctx.fillStyle = '#07140d';
+          ctx.fillRect(36, 265, 290, 235);
+          ctx.strokeStyle = isAfter ? '#22c55e' : '#1e293b';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(36, 265, 290, 235);
+          ctx.fillStyle = isAfter ? '#22c55e' : '#475569';
+          ctx.font = '800 22px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('MERRY', 181, 355);
+          ctx.fillText('CHRISTMAS', 181, 388);
+          ctx.fillText('CHAT', 181, 421);
+
+          // Right Stacked CRT TVs Showing "CHAOS" & Snowflakes
+          [190, 345].forEach((cy, idx) => {
+            ctx.fillStyle = '#110b1c';
+            ctx.fillRect(975, cy, 240, 140);
+            ctx.strokeStyle = isAfter ? '#ec4899' : '#272036';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(975, cy, 240, 140);
+            ctx.fillStyle = isAfter ? '#ec4899' : '#475569';
+            ctx.font = '800 26px "JetBrains Mono", monospace';
+            ctx.fillText(idx === 0 ? '❄ ❄ ❄' : 'CHAOS', 1095, cy + 78);
+          });
+
+          // Center Streamer at Boom Mic
+          drawStylizedCharacter(ctx, 640, 470, 1.48, t, bass, {
+            hasSantaCatHat: false,
+            hasMic: true,
+            pose: 'desk',
+            isLit: isAfter,
+          });
+
+          // Gaming Desk + RGB Keyboard
+          ctx.fillStyle = '#0c0814';
+          ctx.fillRect(0, 610, WIDTH, 110);
+          ctx.fillStyle = isAfter ? '#ec4899' : '#334155';
+          ctx.fillRect(430, 628, 420, 38);
+
+          if (isAfter) {
+            if (state.doodlesEnabled && state.doodlesIntensity > 0.05) {
+              render12FpsDoodles(ctx, t, bass);
+            }
+            if (t >= 142.8) {
+              renderCrtPowerOff(ctx, t);
+            }
+          }
+        }
+
+        ctx.restore();
+        ctx.filter = 'none';
+        ctx.restore();
+      }
+
+      /**
+       * Composites twinkling Christmas light grids & wreaths onto background buildings
+       * while cutting out a smooth oval safe-zone around the center performer.
+       */
+      function compositeBuildingLights(ctx, t, bass, shakeX, shakeY, applyCutout) {
+        lmCtx.clearRect(0, 0, WIDTH, HEIGHT);
+        lmCtx.save();
+
+        if (t < 45.5) {
+          // Rooftop skyscrapers
+          const isBellBreak = t >= 28.5 && t <= 32.0;
+          const activeStep = Math.floor(((t - 28.5) / 3.5) * 16) % 8;
+
+          sceneAssets.rooftopBulbs.forEach((b) => {
+            let pulse = 0.45 + 0.55 * Math.sin(t * b.speed + b.phase);
+            if (isBellBreak) {
+              pulse = b.cascadeIdx === activeStep ? 1.4 : 0.2;
+            } else {
+              pulse += bass * 0.45;
+            }
+            const alpha = Math.min(1, pulse * 0.85 * state.lightsIntensity);
+            const r = b.radius * (1 + bass * 0.35);
+
+            // Soft halation halo
+            lmCtx.fillStyle = b.color;
+            lmCtx.globalAlpha = alpha * 0.35;
+            lmCtx.beginPath();
+            lmCtx.arc(b.x, b.y, r * 3.3, 0, Math.PI * 2);
+            lmCtx.fill();
+
+            // Bright LED core
+            lmCtx.globalAlpha = alpha;
+            lmCtx.beginPath();
+            lmCtx.arc(b.x, b.y, r, 0, Math.PI * 2);
+            lmCtx.fill();
+          });
+        } else if (t >= 75.5 && t < 109.5) {
+          // Snowy alleyway facades & wreaths
+          sceneAssets.alleyGarlands.forEach((g) => {
+            const pulse = 0.5 + 0.5 * Math.sin(t * g.speed + g.phase) + bass * 0.35;
+            const alpha = Math.min(1, pulse * 0.9 * state.lightsIntensity);
+
+            lmCtx.fillStyle = g.color;
+            lmCtx.globalAlpha = alpha * 0.36;
+            lmCtx.beginPath();
+            lmCtx.arc(g.x, g.y, g.radius * 3.4, 0, Math.PI * 2);
+            lmCtx.fill();
+
+            lmCtx.globalAlpha = alpha;
+            lmCtx.beginPath();
+            lmCtx.arc(g.x, g.y, g.radius, 0, Math.PI * 2);
+            lmCtx.fill();
+          });
+
+          sceneAssets.alleyWreaths.forEach((wr, idx) => {
+            for (let k = 0; k < 14; k++) {
+              const ang = (k / 14) * Math.PI * 2 + t * 0.45;
+              const wx = wr.x + Math.cos(ang) * wr.r;
+              const wy = wr.y + Math.sin(ang) * wr.r * 1.3;
+              lmCtx.fillStyle = k % 2 === 0 ? '#22c55e' : '#ff2442';
+              lmCtx.globalAlpha = Math.min(1, (0.65 + 0.35 * Math.sin(t * 4.5 + k + idx)) * state.lightsIntensity);
+              lmCtx.beginPath();
+              lmCtx.arc(wx, wy, 2.5, 0, Math.PI * 2);
+              lmCtx.fill();
+            }
+          });
+        } else if (t >= 109.5) {
+          // City skyline window behind gaming desk
+          sceneAssets.rooftopBulbs.forEach((b) => {
+            if (b.x < 390 || b.x > 890 || b.y > 385) return;
+            const pulse = 0.5 + 0.5 * Math.sin(t * b.speed + b.phase) + bass * 0.4;
+            const alpha = Math.min(1, pulse * 0.8 * state.lightsIntensity);
+
+            lmCtx.fillStyle = b.color;
+            lmCtx.globalAlpha = alpha * 0.34;
+            lmCtx.beginPath();
+            lmCtx.arc(b.x, b.y, b.radius * 3.0, 0, Math.PI * 2);
+            lmCtx.fill();
+
+            lmCtx.globalAlpha = alpha;
+            lmCtx.beginPath();
+            lmCtx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            lmCtx.fill();
+          });
+        }
+
+        // Subject Safe-Zone Cutout Mask (protects performer from background light spill)
+        if (applyCutout || state.showMaskGuide) {
+          const maskCx = t >= 75.5 && t < 109.5 ? 945 : 640;
+          const maskCy = 395;
+          const rx = WIDTH * state.maskRadius;
+          const ry = 385;
+
+          if (applyCutout) {
+            lmCtx.globalCompositeOperation = 'destination-out';
+            lmCtx.globalAlpha = 1;
+            const grad = lmCtx.createRadialGradient(maskCx, maskCy, rx * 0.45, maskCx, maskCy, rx * 1.15);
+            grad.addColorStop(0, 'rgba(0,0,0,1)');
+            grad.addColorStop(0.75, 'rgba(0,0,0,0.94)');
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            lmCtx.fillStyle = grad;
+            lmCtx.beginPath();
+            lmCtx.ellipse(maskCx, maskCy, rx * 1.15, ry, 0, 0, Math.PI * 2);
+            lmCtx.fill();
+          }
+        }
+
+        lmCtx.restore();
+
+        // Additive blend onto main AFTER canvas
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.drawImage(lightMaskCanvas, shakeX * 0.4, shakeY * 0.4);
+        ctx.restore();
+
+        // Optional dashed guide ellipse when toggled on
+        if (state.showMaskGuide) {
+          const maskCx = t >= 75.5 && t < 109.5 ? 945 : 640;
+          ctx.save();
+          ctx.strokeStyle = '#22c55e';
+          ctx.setLineDash([8, 6]);
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.ellipse(maskCx, 395, WIDTH * state.maskRadius, 360, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      /**
+       * Renders 12fps Cole Bennett / Lyrical Lemonade hand-drawn neon doodles
+       */
+      function render12FpsDoodles(ctx, t, bass) {
+        const step12 = Math.floor(t * 12);
+        const jx = (s = 1) => Math.sin(step12 * 19.3 + s * 7.1) * 4.5 * state.doodlesIntensity;
+        const jy = (s = 1) => Math.cos(step12 * 23.7 + s * 5.3) * 4.5 * state.doodlesIntensity;
+        const glow = 18 * state.doodlesIntensity;
+
+        // 1. Rooftop Neon Wireframe Sleigh & Reindeer in Snowy Sky (00:09.5–00:39.0)
+        if (t >= 9.5 && t < 39.0) {
+          const cycle = ((t - 9.5) % 8.0) / 8.0;
+          const sx = 220 + cycle * 780 + jx(2);
+          const sy = 115 - Math.sin(cycle * Math.PI) * 38 + jy(2);
+
+          // Glowing neon motion trail
+          for (let p = 1; p <= 7; p++) {
+            ctx.fillStyle = p % 2 === 0 ? '#00f0ff' : '#ec4899';
+            ctx.fillRect(sx - p * 22 + jx(p), sy + jy(p + 2), 11, 4);
+          }
+
+          // Wireframe Sleigh
+          drawNeonStroke(
+            ctx,
+            [
+              [sx - 34, sy + 12],
+              [sx + 26, sy + 12],
+              [sx + 40, sy - 2],
+            ],
+            '#00f0ff',
+            3,
+            false,
+            glow
+          );
+          drawNeonStroke(
+            ctx,
+            [
+              [sx - 26, sy + 6],
+              [sx - 26, sy - 14],
+              [sx + 8, sy - 6],
+              [sx + 22, sy - 14],
+              [sx + 18, sy + 6],
+            ],
+            '#ec4899',
+            3,
+            true,
+            glow
+          );
+
+          // Lead Reindeer silhouette ahead of sleigh
+          const rx = sx + 74;
+          const ry = sy - 6 + Math.sin(step12 * 0.9) * 4;
+          drawNeonStroke(
+            ctx,
+            [
+              [rx - 16, ry + 12],
+              [rx - 10, ry],
+              [rx + 12, ry],
+              [rx + 18, ry + 12],
+              [rx + 12, ry],
+              [rx + 18, ry - 12],
+              [rx + 26, ry - 10],
+            ],
+            '#22c55e',
+            2.8,
+            false,
+            glow
+          );
+        }
+
+        // 2. Beat Drop: Reboot Crown + Hand Lightning + Toxic-Purple Flames (00:39.0–00:45.5)
+        if (t >= 39.0 && t <= 45.5) {
+          // Floating Neon Crown over Head
+          const cx = 640 + jx(1);
+          const cy = 115 + jy(1);
+          drawNeonStroke(
+            ctx,
+            [
+              [cx - 58, cy + 28],
+              [cx - 70, cy - 20],
+              [cx - 28, cy + 6],
+              [cx, cy - 30],
+              [cx + 28, cy + 6],
+              [cx + 70, cy - 20],
+              [cx + 58, cy + 28],
+            ],
+            '#ffd166',
+            4.2,
+            true,
+            glow * 1.25
+          );
+
+          // Left & Right Jagged Lightning Bolts Radiating from Hands
+          drawNeonStroke(
+            ctx,
+            [
+              [445 + jx(2), 340 + jy(2)],
+              [345 + jx(3), 265 + jy(3)],
+              [385 + jx(4), 255 + jy(4)],
+              [265 + jx(5), 175 + jy(5)],
+            ],
+            '#22c55e',
+            3.8,
+            false,
+            glow
+          );
+          drawNeonStroke(
+            ctx,
+            [
+              [835 + jx(6), 340 + jy(6)],
+              [935 + jx(7), 265 + jy(7)],
+              [895 + jx(8), 255 + jy(8)],
+              [1015 + jx(9), 175 + jy(9)],
+            ],
+            '#ec4899',
+            3.8,
+            false,
+            glow
+          );
+
+          // Erupting Toxic-Purple & Magenta Flames along Snow & R34 Hood
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          for (let i = 0; i < 16; i++) {
+            const fx = 160 + (i / 15) * 960 + jx(i);
+            const fh = (105 + Math.sin(step12 * 1.8 + i * 2.1) * 48) * state.doodlesIntensity;
+            const fg = ctx.createLinearGradient(fx, HEIGHT, fx, HEIGHT - fh);
+            fg.addColorStop(0, 'rgba(168, 85, 247, 0.9)');
+            fg.addColorStop(0.55, 'rgba(236, 72, 153, 0.7)');
+            fg.addColorStop(1, 'rgba(236, 72, 153, 0)');
+            ctx.fillStyle = fg;
+            ctx.beginPath();
+            ctx.moveTo(fx - 38, HEIGHT);
+            ctx.quadraticCurveTo(fx - 15 + jx(i + 2), HEIGHT - fh * 0.62, fx + jx(i + 4), HEIGHT - fh);
+            ctx.quadraticCurveTo(fx + 15 - jx(i + 2), HEIGHT - fh * 0.62, fx + 38, HEIGHT);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        // 3. Corrupted Candy Canes & Aura in Neon Tree Stage (00:46.0–01:15.5)
+        if (t >= 46.0 && t < 75.5) {
+          [290, 990].forEach((ccx, idx) => {
+            ctx.save();
+            ctx.translate(ccx + jx(idx + 5), 295 + jy(idx + 5));
+            ctx.rotate(Math.sin(step12 * 0.35 + idx) * 0.4);
+            drawNeonStroke(
+              ctx,
+              [
+                [0, 50],
+                [0, -24],
+                [10, -38],
+                [26, -38],
+                [34, -20],
+              ],
+              '#ec4899',
+              5,
+              false,
+              glow
+            );
+            ctx.restore();
+          });
+        }
+
+        // 4. Snowy Alleyway: 12fps Neon Pink Devil Horns + Cyan Scribble Aura (01:15.5–01:49.5)
+        if (t >= 75.5 && t < 109.5) {
+          const hx = 945;
+          const hy = 278;
+          drawNeonStroke(
+            ctx,
+            [
+              [hx - 36 + jx(1), hy + jy(1)],
+              [hx - 58 + jx(2), hy - 34 + jy(2)],
+              [hx - 42 + jx(3), hy - 58 + jy(3)],
+              [hx - 24 + jx(4), hy - 14 + jy(4)],
+            ],
+            '#ec4899',
+            3.8,
+            true,
+            glow
+          );
+          drawNeonStroke(
+            ctx,
+            [
+              [hx + 36 + jx(5), hy + jy(5)],
+              [hx + 58 + jx(6), hy - 34 + jy(6)],
+              [hx + 42 + jx(7), hy - 58 + jy(7)],
+              [hx + 24 + jx(8), hy - 14 + jy(8)],
+            ],
+            '#ec4899',
+            3.8,
+            true,
+            glow
+          );
+
+          // Cyan scribble outline around hair/shoulders
+          drawNeonStroke(
+            ctx,
+            [
+              [815 + jx(9), 530 + jy(9)],
+              [832 + jx(10), 425 + jy(10)],
+              [865 + jx(11), 330 + jy(11)],
+            ],
+            '#00f0ff',
+            2.6,
+            false,
+            glow
+          );
+        }
+
+        // 5. Gaming Room Finale: Lightning Bolts, Glowing X's & North Pole Crown (01:49.5–02:23.0)
+        if (t >= 109.5 && t <= 143.0) {
+          // Lightning bolts flanking streamer
+          drawNeonStroke(
+            ctx,
+            [
+              [445 + jx(1), 220 + jy(1)],
+              [395 + jx(2), 150 + jy(2)],
+              [425 + jx(3), 145 + jy(3)],
+              [370 + jx(4), 85 + jy(4)],
+            ],
+            '#22c55e',
+            3.4,
+            false,
+            glow
+          );
+          drawNeonStroke(
+            ctx,
+            [
+              [835 + jx(5), 220 + jy(5)],
+              [885 + jx(6), 150 + jy(6)],
+              [855 + jx(7), 145 + jy(7)],
+              [910 + jx(8), 85 + jy(8)],
+            ],
+            '#ec4899',
+            3.4,
+            false,
+            glow
+          );
+
+          // Neon X doodles
+          [
+            [355, 290, '#ec4899'],
+            [925, 290, '#22c55e'],
+            [340, 540, '#22c55e'],
+            [940, 540, '#ec4899'],
+          ].forEach(([xx, xy, col], idx) => {
+            drawNeonStroke(
+              ctx,
+              [
+                [xx - 12 + jx(idx), xy - 12 + jy(idx)],
+                [xx + 12 + jx(idx), xy + 12 + jy(idx)],
+              ],
+              col,
+              3,
+              false,
+              glow
+            );
+            drawNeonStroke(
+              ctx,
+              [
+                [xx + 12 + jx(idx), xy - 12 + jy(idx)],
+                [xx - 12 + jx(idx), xy + 12 + jy(idx)],
+              ],
+              col,
+              3,
+              false,
+              glow
+            );
+          });
+
+          // Floating crown on "The North Pole is mine now" (02:14–02:19)
+          if (t >= 134.0 && t <= 139.0) {
+            const cx = 640 + jx(12);
+            const cy = 120 + jy(12);
+            drawNeonStroke(
+              ctx,
+              [
+                [cx - 52, cy + 24],
+                [cx - 64, cy - 16],
+                [cx - 26, cy + 6],
+                [cx, cy - 26],
+                [cx + 26, cy + 6],
+                [cx + 64, cy - 16],
+                [cx + 52, cy + 24],
+              ],
+              '#ffd166',
+              4,
+              true,
+              glow * 1.2
+            );
+          }
+        }
+      }
+
+      /**
+       * Renders horizontal datamosh slice displacement & RGB chromatic split (Scene 3: 01:00–01:09.5)
+       */
+      function renderDatamoshPass(ctx, t) {
+        const step15 = Math.floor(t * 15);
+        for (let s = 0; s < 8; s++) {
+          const sy = (step15 * 97 + s * 109) % (HEIGHT - 44);
+          const sh = 14 + ((step15 + s * 17) % 28);
+          const dx = Math.sin(step15 * 3.9 + s * 2.3) * 38 * state.glitchIntensity;
+          ctx.drawImage(afterCanvas, 0, sy, WIDTH, sh, dx, sy, WIDTH, sh);
+        }
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(236, 72, 153, ${0.12 * state.glitchIntensity})`;
+        ctx.fillRect(-10 * state.glitchIntensity, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = `rgba(34, 197, 94, ${0.1 * state.glitchIntensity})`;
+        ctx.fillRect(10 * state.glitchIntensity, 0, WIDTH, HEIGHT);
+
+        // Scanlines
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        for (let y = 0; y < HEIGHT; y += 4) {
+          ctx.fillRect(0, y, WIDTH, 1);
+        }
+        ctx.restore();
+      }
+
+      /**
+       * Renders diagonal Quebec blizzard snowflakes
+       */
+      function renderSnowParticles(ctx, t, density) {
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        const count = Math.floor(sceneAssets.snowflakes.length * density);
+        for (let i = 0; i < count; i++) {
+          const sf = sceneAssets.snowflakes[i];
+          const sx = (((sf.x + t * sf.vx) % WIDTH) + WIDTH) % WIDTH;
+          const sy = (((sf.y + t * sf.vy) % HEIGHT) + HEIGHT) % HEIGHT;
+          ctx.globalAlpha = sf.alpha;
+          ctx.beginPath();
+          ctx.arc(sx, sy, sf.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      /**
+       * Renders CRT Power-Off vertical collapse into glowing pink/white beam (02:22.8–02:24.0)
+       */
+      function renderCrtPowerOff(ctx, t) {
+        const p = Math.min(1, (t - 142.8) / 1.15);
+        const maskH = HEIGHT * 0.496 * Math.min(1, p * 1.35);
+        ctx.fillStyle = '#050308';
+        ctx.fillRect(0, 0, WIDTH, maskH);
+        ctx.fillRect(0, HEIGHT - maskH, WIDTH, maskH);
+
+        const beamW = WIDTH * Math.max(0, 1 - Math.max(0, (p - 0.55) / 0.45));
+        if (beamW > 2) {
+          ctx.save();
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = '#ec4899';
+          ctx.shadowBlur = 24;
+          ctx.fillRect((WIDTH - beamW) / 2, HEIGHT / 2 - 2, beamW, 4);
+          ctx.restore();
+        }
+      }
+
+      /**
+       * Composites BEFORE and AFTER buffers onto the visible 16:9 canvas with interactive split slider
+       */
+      function composeSplitScreenDisplay() {
+        mainCtx.clearRect(0, 0, WIDTH, HEIGHT);
+
+        if (state.viewMode === 'before') {
+          mainCtx.drawImage(beforeCanvas, 0, 0);
+          return;
+        }
+        if (state.viewMode === 'after') {
+          mainCtx.drawImage(afterCanvas, 0, 0);
+          return;
+        }
+
+        // Split Screen Mode
+        const splitX = Math.round(WIDTH * state.splitRatio);
+
+        // Left side: BEFORE (Raw Dark Footage)
+        if (splitX > 0) {
+          mainCtx.save();
+          mainCtx.beginPath();
+          mainCtx.rect(0, 0, splitX, HEIGHT);
+          mainCtx.clip();
+          mainCtx.drawImage(beforeCanvas, 0, 0);
+          mainCtx.restore();
+        }
+
+        // Right side: AFTER (Christmas Lights + VFX)
+        if (splitX < WIDTH) {
+          mainCtx.save();
+          mainCtx.beginPath();
+          mainCtx.rect(splitX, 0, WIDTH - splitX, HEIGHT);
+          mainCtx.clip();
+          mainCtx.drawImage(afterCanvas, 0, 0);
+          mainCtx.restore();
+        }
+
+        // Glowing Neon Divider Line + Interactive Handle Badge
+        mainCtx.save();
+        mainCtx.strokeStyle = '#ffffff';
+        mainCtx.shadowColor = '#ec4899';
+        mainCtx.shadowBlur = 16;
+        mainCtx.lineWidth = 3;
+        mainCtx.beginPath();
+        mainCtx.moveTo(splitX, 0);
+        mainCtx.lineTo(splitX, HEIGHT);
+        mainCtx.stroke();
+
+        // Center Draggable Pill Handle
+        const hy = HEIGHT / 2;
+        mainCtx.fillStyle = '#09060e';
+        mainCtx.strokeStyle = '#ec4899';
+        mainCtx.lineWidth = 3;
+        mainCtx.beginPath();
+        mainCtx.roundRect(splitX - 24, hy - 24, 48, 48, 24);
+        mainCtx.fill();
+        mainCtx.stroke();
+
+        mainCtx.fillStyle = '#ffffff';
+        mainCtx.font = '800 14px "JetBrains Mono", monospace';
+        mainCtx.textAlign = 'center';
+        mainCtx.textBaseline = 'middle';
+        mainCtx.fillText('◀ ▶', splitX, hy);
+
+        // Bottom Left "BEFORE" & Bottom Right "AFTER" Pill Labels
+        if (splitX > 190) {
+          mainCtx.fillStyle = 'rgba(9, 6, 14, 0.8)';
+          mainCtx.beginPath();
+          mainCtx.roundRect(18, HEIGHT - 44, 175, 28, 8);
+          mainCtx.fill();
+          mainCtx.fillStyle = '#cbd5e1';
+          mainCtx.font = '700 11px "JetBrains Mono", monospace';
+          mainCtx.fillText('BEFORE (RAW DARK)', 105, HEIGHT - 30);
+        }
+        if (WIDTH - splitX > 220) {
+          mainCtx.fillStyle = 'rgba(236, 72, 153, 0.88)';
+          mainCtx.beginPath();
+          mainCtx.roundRect(WIDTH - 228, HEIGHT - 44, 210, 28, 8);
+          mainCtx.fill();
+          mainCtx.fillStyle = '#ffffff';
+          mainCtx.font = '700 11px "JetBrains Mono", monospace';
+          mainCtx.fillText('AFTER (XMAS LIGHTS + VFX)', WIDTH - 123, HEIGHT - 30);
+        }
+
+        mainCtx.restore();
+      }
+
+      // Update active Scene Preset button highlights & HUD labels
+      function syncTimelineUI(t) {
+        hudTimecode.textContent = `${formatTime(t)} / 02:24.0`;
+        timelineProgress.style.width = `${(t / TOTAL_DURATION) * 100}%`;
+
+        let activePresetTime = '10.5';
+        let sceneLabel = 'SCENE 1 // ROOFTOP SKYLINE';
+        if (t >= 39.0 && t < 45.5) {
+          activePresetTime = '39.8';
+          sceneLabel = 'SCENE 2 // BEAT DROP FLAMES';
+        } else if (t >= 45.5 && t < 75.5) {
+          activePresetTime = '61.0';
+          sceneLabel = 'SCENE 3 // DATAMOSH GLITCH';
+        } else if (t >= 75.5 && t < 109.5) {
+          activePresetTime = '77.0';
+          sceneLabel = 'SCENE 4 // XMAS ALLEYWAY';
+        } else if (t >= 109.5) {
+          activePresetTime = '114.0';
+          sceneLabel = 'SCENE 5 // GAMING FINALE';
+        }
+        hudSceneTag.textContent = sceneLabel;
+
+        document.querySelectorAll('.scene-btn').forEach((btn) => {
+          const isMatch = btn.getAttribute('data-scene-time') === activePresetTime;
+          btn.className = isMatch
+            ? 'scene-btn shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold border transition cursor-pointer bg-[#ec4899]/25 border-[#ec4899] text-white'
+            : 'scene-btn shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-mono font-semibold border transition cursor-pointer bg-white/[0.03] border-purple-500/20 text-purple-300 hover:text-white';
+        });
+      }
+
+      // Main 60fps Animation Loop
+      let lastNow = performance.now();
+      let meterTick = 0;
+
+      function animate(now) {
+        const dt = Math.min(0.1, (now - lastNow) / 1000);
+        lastNow = now;
+
+        if (state.hasLocalVideo) {
+          state.currentTime = sourceVideo.currentTime || 0;
+          if (sourceVideo.ended && state.isExporting && mediaRecorder) {
+            mediaRecorder.stop();
+          }
+        } else if (state.isPlaying) {
+          state.currentTime += dt;
+          if (state.currentTime >= TOTAL_DURATION) {
+            state.currentTime = 0;
+            if (state.isExporting && mediaRecorder) {
+              mediaRecorder.stop();
+            }
+          }
+        }
+
+        // Real-time 808 sub-bass & snare energy (Web Audio FFT if .mp4 loaded, else 142 BPM pulse)
+        let bass = 0.25;
+        let snare = 0.15;
+        if (state.hasLocalVideo && analyser && !sourceVideo.paused) {
+          analyser.getByteFrequencyData(freqData);
+          bass = (freqData[1] + freqData[2] + freqData[3] + freqData[4]) / (4 * 255);
+          snare = (freqData[18] + freqData[24] + freqData[32]) / (3 * 255);
+        } else if (state.isPlaying) {
+          const beatPhase = (state.currentTime * (142 / 60)) % 1;
+          bass = Math.pow(Math.max(0, 1 - beatPhase * 2.3), 2) * 0.92;
+          const snarePhase = (state.currentTime * (142 / 60) + 0.5) % 1;
+          snare = Math.pow(Math.max(0, 1 - snarePhase * 3.4), 2) * 0.85;
+        }
+
+        meterTick++;
+        if (meterTick % 3 === 0) {
+          bassMeterFill.style.width = `${Math.min(100, Math.round(bass * 100))}%`;
+          snareMeterFill.style.width = `${Math.min(100, Math.round(snare * 100))}%`;
+          syncTimelineUI(state.currentTime);
+        }
+
+        // Render BEFORE and AFTER offscreen frames, then composite split display
+        if (state.viewMode !== 'after') {
+          renderScenePass(bCtx, state.currentTime, bass, snare, false);
+        }
+        if (state.viewMode !== 'before') {
+          renderScenePass(aCtx, state.currentTime, bass, snare, true);
+        }
+        composeSplitScreenDisplay();
+
+        requestAnimationFrame(animate);
+      }
+
+      // Start animation immediately on window load
+      window.addEventListener('load', () => {
+        syncTimelineUI(state.currentTime);
+        requestAnimationFrame(animate);
+      });
+
+      // =========================================================================
+      // INTERACTIVE SPLIT-SCREEN SLIDER (MOUSE + TOUCH)
+      // =========================================================================
+      function updateSplitFromClientX(clientX) {
+        const rect = mainCanvas.getBoundingClientRect();
+        if (!rect.width) return;
+        const ratio = (clientX - rect.left) / rect.width;
+        state.splitRatio = Math.max(0.03, Math.min(0.97, ratio));
+      }
+
+      mainCanvas.addEventListener('mousedown', (e) => {
+        if (state.viewMode !== 'split') return;
+        state.isDraggingSplit = true;
+        updateSplitFromClientX(e.clientX);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!state.isDraggingSplit) return;
+        updateSplitFromClientX(e.clientX);
+      });
+      window.addEventListener('mouseup', () => {
+        state.isDraggingSplit = false;
+      });
+
+      mainCanvas.addEventListener(
+        'touchstart',
+        (e) => {
+          if (state.viewMode !== 'split' || !e.touches[0]) return;
+          state.isDraggingSplit = true;
+          updateSplitFromClientX(e.touches[0].clientX);
+        },
+        { passive: true }
+      );
+      window.addEventListener(
+        'touchmove',
+        (e) => {
+          if (!state.isDraggingSplit || !e.touches[0]) return;
+          updateSplitFromClientX(e.touches[0].clientX);
+        },
+        { passive: true }
+      );
+      window.addEventListener('touchend', () => {
+        state.isDraggingSplit = false;
+      });
+
+      // View Mode Switcher (Full After / Split 50/50 / Full Before)
+      function setViewMode(mode) {
+        state.viewMode = mode;
+        splitHintPill.style.display = mode === 'split' ? '' : 'none';
+        document.querySelectorAll('.view-mode-btn').forEach((btn) => {
+          const active = btn.getAttribute('data-view-mode') === mode;
+          btn.className = active
+            ? 'view-mode-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition cursor-pointer bg-[#a855f7] text-white shadow'
+            : 'view-mode-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition cursor-pointer text-purple-300 hover:text-white';
+        });
+      }
+
+      document.querySelectorAll('.view-mode-btn').forEach((btn) => {
+        btn.addEventListener('click', () => setViewMode(btn.getAttribute('data-view-mode')));
+      });
+
+      resetSplitBtn.addEventListener('click', () => {
+        state.splitRatio = 0.5;
+        setViewMode('split');
+      });
+
+      // Scene Preset Buttons
+      document.querySelectorAll('.scene-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetTime = parseFloat(btn.getAttribute('data-scene-time'));
+          state.currentTime = targetTime;
+          if (state.hasLocalVideo) {
+            sourceVideo.currentTime = Math.min(sourceVideo.duration || targetTime, targetTime);
+          }
+          syncTimelineUI(state.currentTime);
+        });
+      });
+
+      // Timeline Scrubbing
+      timelineTrack.addEventListener('click', (e) => {
+        const rect = timelineTrack.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        const dur = state.hasLocalVideo && sourceVideo.duration ? sourceVideo.duration : TOTAL_DURATION;
+        state.currentTime = ratio * dur;
+        if (state.hasLocalVideo) {
+          sourceVideo.currentTime = state.currentTime;
+        }
+        syncTimelineUI(state.currentTime);
+      });
+
+      // Play / Pause & Mute
+      playPauseBtn.addEventListener('click', async () => {
+        if (state.hasLocalVideo) {
+          setupWebAudio();
+          if (audioCtx && audioCtx.state === 'suspended') {
+            await audioCtx.resume();
+          }
+          if (sourceVideo.paused) {
+            await sourceVideo.play();
+            state.isPlaying = true;
+          } else {
+            sourceVideo.pause();
+            state.isPlaying = false;
+          }
+        } else {
+          state.isPlaying = !state.isPlaying;
+        }
+        playPauseIcon.textContent = state.isPlaying ? '❚❚' : '▶';
+        playPauseText.textContent = state.isPlaying ? 'Pause' : 'Play';
+      });
+
+      muteBtn.addEventListener('click', () => {
+        state.isMuted = !state.isMuted;
+        sourceVideo.muted = state.isMuted;
+        muteBtn.textContent = state.isMuted ? '🔇 Muted' : '🔊 Audio On';
+      });
+
+      // =========================================================================
+      // LOCAL .MP4 FILE LOADING & WEB AUDIO FFT SETUP
+      // =========================================================================
+      function setupWebAudio() {
+        if (audioCtx) return;
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextClass();
+          const srcNode = audioCtx.createMediaElementSource(sourceVideo);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          analyser.smoothingTimeConstant = 0.72;
+          mediaStreamDest = audioCtx.createMediaStreamDestination();
+          srcNode.connect(analyser);
+          analyser.connect(audioCtx.destination);
+          srcNode.connect(mediaStreamDest);
+        } catch (err) {
+          // Graceful fallback if audio context is deferred
+        }
+      }
+
+      async function handleLocalVideoFile(file) {
+        if (!file) return;
+        if (state.videoObjectUrl) {
+          URL.revokeObjectURL(state.videoObjectUrl);
+        }
+        state.videoObjectUrl = URL.createObjectURL(file);
+        sourceVideo.src = state.videoObjectUrl;
+        sourceVideo.loop = false;
+        state.hasLocalVideo = true;
+        state.currentTime = 0;
+
+        modeBadge.textContent = 'LOCAL .MP4 COMPOSITOR';
+        sourceSubtext.textContent = `Compositing: ${file.name} (Drag slider to compare Raw vs. VFX)`;
+        showBanner(`Loaded "${file.name}" — Use the Split Slider to compare your original video vs. Christmas Lights + VFX.`);
+
+        setupWebAudio();
+        if (audioCtx && audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+        try {
+          await sourceVideo.play();
+          state.isPlaying = true;
+          playPauseIcon.textContent = '❚❚';
+          playPauseText.textContent = 'Pause';
+        } catch (err) {
+          state.isPlaying = false;
+          playPauseIcon.textContent = '▶';
+          playPauseText.textContent = 'Play';
+        }
+      }
+
+      loadMp4Btn.addEventListener('click', () => videoFileInput.click());
+      videoFileInput.addEventListener('change', (e) => {
+        handleLocalVideoFile(e.target.files && e.target.files[0]);
+      });
+
+      viewportContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropOverlay.classList.remove('hidden');
+      });
+      viewportContainer.addEventListener('dragleave', () => {
+        dropOverlay.classList.add('hidden');
+      });
+      viewportContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropOverlay.classList.add('hidden');
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file && file.type.startsWith('video/')) {
+          handleLocalVideoFile(file);
+        }
+      });
+
+      // =========================================================================
+      // 1-CLICK .WEBM COMPOSITE EXPORT (Captures Full AFTER Buffer + Original Audio)
+      // =========================================================================
+      exportWebmBtn.addEventListener('click', async () => {
+        if (state.isExporting && mediaRecorder) {
+          mediaRecorder.stop();
+          return;
+        }
+
+        try {
+          if (state.hasLocalVideo) {
+            setupWebAudio();
+            if (audioCtx && audioCtx.state === 'suspended') {
+              await audioCtx.resume();
+            }
+            sourceVideo.currentTime = 0;
+          }
+          state.currentTime = 0;
+
+          // Capture the clean Full AFTER canvas so the split line never appears in the export
+          const videoStream = afterCanvas.captureStream(30);
+          const tracks = [...videoStream.getVideoTracks()];
+          if (mediaStreamDest) {
+            const aTracks = mediaStreamDest.stream.getAudioTracks();
+            if (aTracks.length > 0) tracks.push(aTracks[0]);
+          }
+
+          const combined = new MediaStream(tracks);
+          const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+            ? 'video/webm;codecs=vp9,opus'
+            : 'video/webm';
+
+          mediaRecorder = new MediaRecorder(combined, {
+            mimeType: mime,
+            videoBitsPerSecond: 8500000,
+          });
+
+          recordedChunks = [];
+          mediaRecorder.ondataavailable = (ev) => {
+            if (ev.data && ev.data.size > 0) recordedChunks.push(ev.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Chaos_Xmas_VFX_Composite_2026.webm';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+            state.isExporting = false;
+            exportWebmLabel.textContent = 'Export .WEBM Video';
+            showBanner('Export complete! Downloaded Chaos_Xmas_VFX_Composite_2026.webm.');
+          };
+
+          mediaRecorder.start(500);
+          state.isExporting = true;
+          exportWebmLabel.textContent = 'Stop & Save .WEBM';
+          showBanner('Recording Full After VFX composite in real time... Click "Stop & Save .WEBM" anytime to finish.');
+
+          if (state.hasLocalVideo) {
+            await sourceVideo.play();
+          }
+          state.isPlaying = true;
+          playPauseIcon.textContent = '❚❚';
+          playPauseText.textContent = 'Pause';
+        } catch (err) {
+          state.isExporting = false;
+          exportWebmLabel.textContent = 'Export .WEBM Video';
+          showBanner('MediaRecorder export is restricted in this browser preview.');
+        }
+      });
+
+      // =========================================================================
+      // SLIDERS & CHECKBOX LISTENERS
+      // =========================================================================
+      toggleLights.addEventListener('change', (e) => (state.lightsEnabled = e.target.checked));
+      lightsIntensitySlider.addEventListener('input', (e) => {
+        state.lightsIntensity = parseFloat(e.target.value);
+        lightsValLabel.textContent = `${Math.round(state.lightsIntensity * 100)}%`;
+      });
+      maskRadiusSlider.addEventListener('input', (e) => {
+        state.maskRadius = parseFloat(e.target.value);
+        maskRadiusLabel.textContent = `${Math.round(state.maskRadius * 100)}%`;
+      });
+
+      toggleDoodles.addEventListener('change', (e) => (state.doodlesEnabled = e.target.checked));
+      doodlesIntensitySlider.addEventListener('input', (e) => {
+        state.doodlesIntensity = parseFloat(e.target.value);
+        doodlesValLabel.textContent = `${Math.round(state.doodlesIntensity * 100)}%`;
+      });
+
+      toggleGlitch.addEventListener('change', (e) => (state.glitchEnabled = e.target.checked));
+      glitchIntensitySlider.addEventListener('input', (e) => {
+        state.glitchIntensity = parseFloat(e.target.value);
+        glitchValLabel.textContent = `${Math.round(state.glitchIntensity * 100)}%`;
+      });
+
+      toggleMaskGuide.addEventListener('change', (e) => (state.showMaskGuide = e.target.checked));
+
+      // =========================================================================
+      // SHOPIFY HYDROGEN .JSX MODAL & IFRAME-SAFE CLIPBOARD COPY
+      // =========================================================================
+      const HYDROGEN_JSX_SNIPPET = `// app/components/ChaosXmasVfxPlayer.jsx
+// SSR-Safe Shopify Hydrogen / Remix Client-Only Christmas Lights & VFX Compositor
+import React, { useEffect, useRef, useState } from 'react';
+
+export function ClientOnly({ children, fallback = null }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted ? children : fallback;
+}
+
+export default function ChaosXmasVfxPlayer({
+  videoSrc,
+  lightsIntensity = 1.25,
+  doodlesIntensity = 1.2,
+  maskRadius = 0.25,
+}) {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const analyserRef = useRef(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+    const ctx = canvas.getContext('2d');
+    let rafId;
+
+    const connectAudio = () => {
+      if (analyserRef.current) return;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const actx = new AudioCtx();
+      const src = actx.createMediaElementSource(video);
+      const analyser = actx.createAnalyser();
+      analyser.fftSize = 256;
+      src.connect(analyser);
+      analyser.connect(actx.destination);
+      analyserRef.current = analyser;
+    };
+
+    video.addEventListener('play', connectAudio);
+    const bins = new Uint8Array(128);
+
+    const draw = () => {
+      const t = video.currentTime || 0;
+      const w = (canvas.width = 1280);
+      const h = (canvas.height = 720);
+
+      let bass = 0;
+      if (analyserRef.current) {
+        analyserRef.current.getByteFrequencyData(bins);
+        bass = (bins[1] + bins[2] + bins[3]) / (3 * 255);
+      }
+
+      const shake = bass > 0.7 ? (bass - 0.7) * 24 : 0;
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(video, (Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake, w, h);
+
+      // Masked Background Building Christmas Lights
+      if (lightsIntensity > 0 && ((t >= 9.5 && t <= 45.5) || (t >= 75.5 && t <= 109.5))) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const colors = ['#ff2442', '#22c55e', '#ffd166', '#00f0ff', '#ec4899'];
+        for (let i = 0; i < 160; i++) {
+          const bx = i % 2 === 0 ? ((i * 37) % 360) + 20 : w - (((i * 41) % 360) + 20);
+          const by = ((i * 53) % 370) + 40;
+          const pulse = 0.45 + 0.55 * Math.sin(t * 5 + i) + bass * 0.4;
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.globalAlpha = Math.min(1, pulse * 0.8 * lightsIntensity);
+          ctx.beginPath();
+          ctx.arc(bx, by, 2.5 + bass * 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // 12fps Hand-Drawn Neon Reboot Crown (00:39 - 00:43)
+      if (doodlesIntensity > 0 && t >= 39.0 && t <= 43.0) {
+        const step = Math.floor(t * 12);
+        const jx = Math.sin(step * 19.3) * 4;
+        const jy = Math.cos(step * 23.7) * 4;
+        ctx.save();
+        ctx.strokeStyle = '#ffd166';
+        ctx.shadowColor = '#ec4899';
+        ctx.shadowBlur = 18;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.45 + jx, h * 0.16 + jy);
+        ctx.lineTo(w * 0.44 + jx, h * 0.09 + jy);
+        ctx.lineTo(w * 0.475 + jx, h * 0.13 + jy);
+        ctx.lineTo(w * 0.50 + jx, h * 0.07 + jy);
+        ctx.lineTo(w * 0.525 + jx, h * 0.13 + jy);
+        ctx.lineTo(w * 0.56 + jx, h * 0.09 + jy);
+        ctx.lineTo(w * 0.55 + jx, h * 0.16 + jy);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      rafId = requestAnimationFrame(draw);
+    };
+
+    rafId = requestAnimationFrame(draw);
+    return () => {
+      cancelAnimationFrame(rafId);
+      video.removeEventListener('play', connectAudio);
+    };
+  }, [lightsIntensity, doodlesIntensity, maskRadius]);
+
+  return (
+    <ClientOnly fallback={<div className="aspect-video w-full bg-black rounded-2xl" />}>
+      <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black">
+        <video ref={videoRef} src={videoSrc} controls playsInline crossOrigin="anonymous" className="hidden" />
+        <canvas ref={canvasRef} className="w-full h-full object-contain block" />
+      </div>
+    </ClientOnly>
+  );
+}`;
+
+      hydrogenCodeTextarea.value = HYDROGEN_JSX_SNIPPET;
+
+      openHydrogenBtn.addEventListener('click', () => {
+        hydrogenModal.classList.remove('hidden');
+      });
+      closeHydrogenModalBtn.addEventListener('click', () => {
+        hydrogenModal.classList.add('hidden');
+      });
+
+      copyHydrogenCodeBtn.addEventListener('click', () => {
+        hydrogenCodeTextarea.select();
+        hydrogenCodeTextarea.setSelectionRange(0, 99999);
+        try {
+          document.execCommand('copy');
+          copyHydrogenCodeBtn.textContent = '✓ Copied!';
+          showBanner('Copied Shopify Hydrogen component code to clipboard!');
+          setTimeout(() => {
+            copyHydrogenCodeBtn.textContent = 'Copy .JSX Code';
+          }, 2200);
+        } catch (err) {
+          showBanner('Select the code inside the box and press Ctrl+C / Cmd+C.');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
